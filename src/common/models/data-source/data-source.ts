@@ -63,6 +63,7 @@ export interface DataSourceValue {
   minGranularity: Duration;
   defaultTimezone: Timezone;
   defaultFilter: Filter;
+  requiredFilter: Filter;
   defaultDuration: Duration;
   defaultSortMeasure: string;
   defaultPinnedDimensions?: OrderedSet<string>;
@@ -86,6 +87,7 @@ export interface DataSourceJS {
   minGranularity?: string;
   defaultTimezone?: string;
   defaultFilter?: FilterJS;
+  requiredFilter?: FilterJS;
   defaultDuration?: string;
   defaultSortMeasure?: string;
   defaultPinnedDimensions?: string[];
@@ -170,6 +172,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       minGranularity: parameters.minGranularity ? Duration.fromJS(parameters.minGranularity) : null,
       defaultTimezone: parameters.defaultTimezone ? Timezone.fromJS(parameters.defaultTimezone) : DataSource.DEFAULT_TIMEZONE,
       defaultFilter: parameters.defaultFilter ? Filter.fromJS(parameters.defaultFilter) : Filter.EMPTY,
+      requiredFilter: parameters.requiredFilter ? Filter.fromJS(parameters.requiredFilter) : Filter.EMPTY,
       defaultDuration: parameters.defaultDuration ? Duration.fromJS(parameters.defaultDuration) : DataSource.DEFAULT_DURATION,
       defaultSortMeasure: parameters.defaultSortMeasure || (measures.size ? measures.first().name : null),
       defaultPinnedDimensions: OrderedSet(parameters.defaultPinnedDimensions || []),
@@ -196,6 +199,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
   public minGranularity: Duration;
   public defaultTimezone: Timezone;
   public defaultFilter: Filter;
+  public requiredFilter: Filter;
   public defaultDuration: Duration;
   public defaultSortMeasure: string;
   public defaultPinnedDimensions: OrderedSet<string>;
@@ -219,6 +223,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
     this.minGranularity = parameters.minGranularity;
     this.defaultTimezone = parameters.defaultTimezone;
     this.defaultFilter = parameters.defaultFilter;
+    this.requiredFilter = parameters.requiredFilter;
     this.defaultDuration = parameters.defaultDuration;
     this.defaultSortMeasure = parameters.defaultSortMeasure;
     this.defaultPinnedDimensions = parameters.defaultPinnedDimensions;
@@ -243,6 +248,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       minGranularity: this.minGranularity,
       defaultTimezone: this.defaultTimezone,
       defaultFilter: this.defaultFilter,
+      requiredFilter: this.requiredFilter,
       defaultDuration: this.defaultDuration,
       defaultSortMeasure: this.defaultSortMeasure,
       defaultPinnedDimensions: this.defaultPinnedDimensions,
@@ -267,6 +273,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       measures: this.measures.toArray().map(measure => measure.toJS()),
       defaultTimezone: this.defaultTimezone.toJS(),
       defaultFilter: this.defaultFilter.toJS(),
+      requiredFilter: this.requiredFilter.toJS(),
       defaultDuration: this.defaultDuration.toJS(),
       defaultSortMeasure: this.defaultSortMeasure,
       defaultPinnedDimensions: this.defaultPinnedDimensions.toArray(),
@@ -313,6 +320,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       (!this.minGranularity || this.minGranularity.equals(other.minGranularity)) &&
       this.defaultTimezone.equals(other.defaultTimezone) &&
       this.defaultFilter.equals(other.defaultFilter) &&
+      this.requiredFilter.equals(other.requiredFilter) &&
       this.defaultDuration.equals(other.defaultDuration) &&
       this.defaultSortMeasure === other.defaultSortMeasure &&
       this.defaultPinnedDimensions.equals(other.defaultPinnedDimensions) &&

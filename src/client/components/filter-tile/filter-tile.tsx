@@ -26,6 +26,7 @@ export interface ItemBlank {
   dimension: Dimension;
   source: string;
   clause?: FilterClause;
+  required?: boolean;
 }
 
 function formatLabel(dimension: Dimension, clause: FilterClause, timezone: Timezone): string {
@@ -452,7 +453,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
   renderRemoveButton(itemBlank: ItemBlank) {
     var { essence } = this.props;
     var dataSource = essence.dataSource;
-    if (itemBlank.dimension.expression.equals(dataSource.timeAttribute)) return null;
+    if (itemBlank.dimension.expression.equals(dataSource.timeAttribute) || itemBlank.required) return null;
     return <div className="remove" onClick={this.removeFilter.bind(this, itemBlank)}>
       <SvgIcon svg={require('../../icons/x.svg')}/>
     </div>;
@@ -463,7 +464,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
     var { menuDimension } = this.state;
     var { timezone } = essence;
 
-    var { dimension, clause, source } = itemBlank;
+    var { dimension, clause, source, required } = itemBlank;
     var dimensionName = dimension.name;
 
     var classNames = [FILTER_CLASS_NAME, 'type-' + dimension.className, source];
@@ -476,10 +477,12 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         className={className}
         key={dimensionName}
         ref={dimensionName}
+        required={required}
         onClick={clicker.acceptHighlight.bind(clicker)}
         style={style}
       >
         <div className="reading">{formatLabel(dimension, clause, timezone)}</div>
+
         {this.renderRemoveButton(itemBlank)}
       </div>;
     }
@@ -489,6 +492,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         className={className}
         key={dimensionName}
         ref={dimensionName}
+        required={required}
         draggable={true}
         onClick={this.clickDimension.bind(this, dimension)}
         onDragStart={this.dragStart.bind(this, dimension, clause)}
@@ -502,6 +506,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         className={className}
         key={dimensionName}
         ref={dimensionName}
+        required={required}
         style={style}
       >
         <div className="reading">{formatLabelDummy(dimension)}</div>
@@ -517,7 +522,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
       possibleDimension, possibleInsertPosition, possibleReplacePosition,
       maxItems
     } = this.state;
-    var { dataSource, filter, highlight } = essence;
+    var { dataSource, filter, requiredFilter, highlight } = essence;
 
     const sectionWidth = CORE_ITEM_WIDTH + CORE_ITEM_GAP;
 
@@ -528,10 +533,25 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         return {
           dimension,
           source: 'from-filter',
-          clause
+          clause,
+          required: false
         };
       })
       .filter(Boolean);
+
+    requiredFilter.clauses.toArray()
+      .forEach((clause): ItemBlank => {
+        var dimension = dataSource.getDimensionByExpression(clause.expression);
+        if (!dimension) return null;
+        if (Boolean) {
+          itemBlanks.unshift({
+            dimension,
+            source: 'from-filter required',
+            clause,
+            required: true
+          });
+        }
+      });
 
     if (highlight) {
       highlight.delta.clauses.forEach((clause) => {

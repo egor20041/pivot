@@ -50,6 +50,7 @@ export interface EssenceValue {
   visualization: Manifest;
   timezone: Timezone;
   filter: Filter;
+  requiredFilter: Filter;
   splits: Splits;
   selectedMeasures: OrderedSet<string>;
   pinnedDimensions: OrderedSet<string>;
@@ -64,6 +65,7 @@ export interface EssenceJS {
   visualization: string;
   timezone: string;
   filter: FilterJS;
+  requiredFilter: FilterJS;
   splits: SplitsJS;
   selectedMeasures: string[];
   pinnedDimensions: string[];
@@ -115,13 +117,14 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
         visualization: visualization,
         timezone: jsArray[0],
         filter: jsArray[1],
-        splits: jsArray[2],
-        selectedMeasures: jsArray[3],
-        pinnedDimensions: jsArray[4],
-        pinnedSort: jsArray[5],
-        colors: jsArray[6] || null,
-        compare: jsArray[7] || null,
-        highlight: jsArray[8] || null
+        requiredFilter: jsArray[2],
+        splits: jsArray[3],
+        selectedMeasures: jsArray[4],
+        pinnedDimensions: jsArray[5],
+        pinnedSort: jsArray[6],
+        colors: jsArray[7] || null,
+        compare: jsArray[8] || null,
+        highlight: jsArray[9] || null
       }, dataSources, visualizations);
     } catch (e) {
       return null;
@@ -132,7 +135,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
 
   static fromDataSource(dataSource: DataSource, dataSources: List<DataSource>, visualizations: List<Manifest>): Essence {
     var timezone = dataSource.defaultTimezone;
-
+    var requiredFilter = dataSource.requiredFilter;
     var filter = dataSource.defaultFilter;
     if (dataSource.timeAttribute) {
       var now = dataSource.getMaxTimeDate();
@@ -163,6 +166,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
       visualization: null,
       timezone,
       filter,
+      requiredFilter,
       splits,
       selectedMeasures: OrderedSet(dataSource.measures.toArray().slice(0, 4).map(m => m.name)),
       pinnedDimensions: dataSource.defaultPinnedDimensions,
@@ -181,6 +185,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
     var dataSource = dataSources.find((ds) => ds.name === dataSourceName);
     var timezone = Timezone.fromJS(parameters.timezone);
     var filter = Filter.fromJS(parameters.filter).constrainToDimensions(dataSource.dimensions, dataSource.timeAttribute);
+    var requiredFilter = Filter.fromJS(parameters.requiredFilter).constrainToDimensions(dataSource.dimensions, dataSource.timeAttribute);
     var splits = Splits.fromJS(parameters.splits).constrainToDimensions(dataSource.dimensions);
     var selectedMeasures = constrainMeasures(OrderedSet(parameters.selectedMeasures), dataSource);
     var pinnedDimensions = constrainDimensions(OrderedSet(parameters.pinnedDimensions), dataSource);
@@ -212,6 +217,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
       visualization,
       timezone,
       filter,
+      requiredFilter,
       splits,
       selectedMeasures,
       pinnedDimensions,
@@ -230,6 +236,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
   public visualization: Manifest;
   public timezone: Timezone;
   public filter: Filter;
+  public requiredFilter: Filter;
   public splits: Splits;
   public selectedMeasures: OrderedSet<string>;
   public pinnedDimensions: OrderedSet<string>;
@@ -250,6 +257,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
 
     this.timezone = parameters.timezone;
     this.filter = parameters.filter;
+    this.requiredFilter = parameters.requiredFilter;
     this.splits = parameters.splits;
     this.selectedMeasures = parameters.selectedMeasures;
     this.pinnedDimensions = parameters.pinnedDimensions;
@@ -289,6 +297,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
       visualization: this.visualization,
       timezone: this.timezone,
       filter: this.filter,
+      requiredFilter: this.requiredFilter,
       splits: this.splits,
       selectedMeasures: this.selectedMeasures,
       pinnedDimensions: this.pinnedDimensions,
@@ -307,6 +316,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
       visualization: this.visualization.id,
       timezone: this.timezone.toJS(),
       filter: this.filter.toJS(),
+      requiredFilter: this.requiredFilter.toJS(),
       splits: this.splits.toJS(),
       selectedMeasures,
       pinnedDimensions
@@ -333,6 +343,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
       this.visualization.id === other.visualization.id &&
       this.timezone.equals(other.timezone) &&
       this.filter.equals(other.filter) &&
+      this.requiredFilter.equals(other.requiredFilter) &&
       this.splits.equals(other.splits) &&
       this.selectedMeasures.equals(other.selectedMeasures) &&
       this.pinnedDimensions.equals(other.pinnedDimensions) &&
@@ -350,14 +361,15 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
     var compressed: any[] = [
       js.timezone,         // 0
       js.filter,           // 1
-      js.splits,           // 2
-      js.selectedMeasures, // 3
-      js.pinnedDimensions, // 4
-      js.pinnedSort        // 5
+      js.requiredFilter,   // 2
+      js.splits,           // 3
+      js.selectedMeasures, // 4
+      js.pinnedDimensions, // 5
+      js.pinnedSort        // 6
     ];
-    if (js.colors)      compressed[6] = js.colors;
-    if (js.compare)     compressed[7] = js.compare;
-    if (js.highlight)   compressed[8] = js.highlight;
+    if (js.colors)      compressed[7] = js.colors;
+    if (js.compare)     compressed[8] = js.compare;
+    if (js.highlight)   compressed[9] = js.highlight;
 
     var restJSON: string[] = [];
     for (var i = 0; i < compressed.length; i++) {
