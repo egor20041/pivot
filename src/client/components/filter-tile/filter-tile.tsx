@@ -26,7 +26,6 @@ export interface ItemBlank {
   dimension: Dimension;
   source: string;
   clause?: FilterClause;
-  required?: boolean;
 }
 
 function formatLabel(dimension: Dimension, clause: FilterClause, timezone: Timezone): string {
@@ -316,7 +315,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
     if (!this.canDrop(e)) return;
     e.preventDefault();
     var { clicker, essence } = this.props;
-    var { filter, dataSource } = essence;
+    var { filter, requiredFilter, dataSource } = essence;
 
     var newState: FilterTileState = {
       dragOver: false,
@@ -342,7 +341,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         } else if (dragInsertPosition !== null) {
           newFilter = filter.insertByIndex(dragInsertPosition, existingClause);
         }
-        if (filter.equals(newFilter)) {
+        if (filter.equals(newFilter) || requiredFilter.equals(newFilter)) {
           this.filterMenuRequest(dimension);
         } else {
           clicker.changeFilter(newFilter);
@@ -453,7 +452,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
   renderRemoveButton(itemBlank: ItemBlank) {
     var { essence } = this.props;
     var dataSource = essence.dataSource;
-    if (itemBlank.dimension.expression.equals(dataSource.timeAttribute) || itemBlank.required) return null;
+    if (itemBlank.dimension.expression.equals(dataSource.timeAttribute) || itemBlank.clause.required) return null;
     return <div className="remove" onClick={this.removeFilter.bind(this, itemBlank)}>
       <SvgIcon svg={require('../../icons/x.svg')}/>
     </div>;
@@ -464,7 +463,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
     var { menuDimension } = this.state;
     var { timezone } = essence;
 
-    var { dimension, clause, source, required } = itemBlank;
+    var { dimension, clause, source } = itemBlank;
     var dimensionName = dimension.name;
 
     var classNames = [FILTER_CLASS_NAME, 'type-' + dimension.className, source];
@@ -477,7 +476,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         className={className}
         key={dimensionName}
         ref={dimensionName}
-        required={required}
+        required={clause.required}
         onClick={clicker.acceptHighlight.bind(clicker)}
         style={style}
       >
@@ -492,7 +491,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         className={className}
         key={dimensionName}
         ref={dimensionName}
-        required={required}
+        required={clause.required}
         draggable={true}
         onClick={this.clickDimension.bind(this, dimension)}
         onDragStart={this.dragStart.bind(this, dimension, clause)}
@@ -506,7 +505,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         className={className}
         key={dimensionName}
         ref={dimensionName}
-        required={required}
+        required={false}
         style={style}
       >
         <div className="reading">{formatLabelDummy(dimension)}</div>
@@ -522,7 +521,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
       possibleDimension, possibleInsertPosition, possibleReplacePosition,
       maxItems
     } = this.state;
-    var { dataSource, filter, requiredFilter, highlight } = essence;
+    var { dataSource, filter, highlight } = essence;
 
     const sectionWidth = CORE_ITEM_WIDTH + CORE_ITEM_GAP;
 
@@ -533,25 +532,10 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         return {
           dimension,
           source: 'from-filter',
-          clause,
-          required: false
+          clause
         };
       })
       .filter(Boolean);
-
-    requiredFilter.clauses.toArray()
-      .forEach((clause): ItemBlank => {
-        var dimension = dataSource.getDimensionByExpression(clause.expression);
-        if (!dimension) return null;
-        if (Boolean) {
-          itemBlanks.unshift({
-            dimension,
-            source: 'from-filter required',
-            clause,
-            required: true
-          });
-        }
-      });
 
     if (highlight) {
       highlight.delta.clauses.forEach((clause) => {

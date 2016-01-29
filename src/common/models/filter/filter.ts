@@ -1,3 +1,4 @@
+import {runInNewContext} from "vm";
 'use strict';
 
 import { List } from 'immutable';
@@ -36,14 +37,14 @@ export class Filter implements Instance<FilterValue, FilterJS> {
     return new Filter(List([clause]));
   }
 
-  static fromJS(parameters: FilterJS): Filter {
+  static fromJS(parameters: FilterJS, required: boolean = false): Filter {
     var expression = Expression.fromJSLoose(parameters);
 
     var clauses: FilterClause[] = null;
     if (expression.equals(Expression.TRUE)) {
       clauses = [];
     } else {
-      clauses = (expression.getExpressionPattern('and') || [expression]).map(c => FilterClause.fromExpression(c));
+      clauses = (expression.getExpressionPattern('and') || [expression]).map(c => FilterClause.fromExpression(c, required));
     }
 
     return new Filter(<List<FilterClause>>List(clauses));
@@ -256,12 +257,13 @@ export class Filter implements Instance<FilterValue, FilterJS> {
     return clauses.get(0).values;
   }
 
-  public constrainToDimensions(dimensions: List<Dimension>, timeAttribute: Expression, oldTimeAttribute: Expression = null): Filter {
+  public constrainToDimensions(dimensions: List<Dimension>, timeAttribute: Expression, oldTimeAttribute: Expression = null, required: boolean = false): Filter {
     var hasChanged = false;
     var clauses: FilterClause[] = [];
     this.clauses.forEach((clause) => {
       var clauseExpression = clause.expression;
       if (Dimension.getDimensionByExpression(dimensions, clauseExpression)) {
+        clause.required = required;
         clauses.push(clause);
       } else {
         hasChanged = true;
@@ -275,7 +277,9 @@ export class Filter implements Instance<FilterValue, FilterJS> {
       }
     });
 
-    return hasChanged ? new Filter(List(clauses)) : this;
+    var newFilter = hasChanged ? new Filter(List(clauses)) : this;
+
+    return newFilter;
   }
 
   public overQuery(duration: Duration, timezone: Timezone, timeAttribute: Expression): Filter {

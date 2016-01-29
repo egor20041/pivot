@@ -172,7 +172,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       minGranularity: parameters.minGranularity ? Duration.fromJS(parameters.minGranularity) : null,
       defaultTimezone: parameters.defaultTimezone ? Timezone.fromJS(parameters.defaultTimezone) : DataSource.DEFAULT_TIMEZONE,
       defaultFilter: parameters.defaultFilter ? Filter.fromJS(parameters.defaultFilter) : Filter.EMPTY,
-      requiredFilter: parameters.requiredFilter ? Filter.fromJS(parameters.requiredFilter) : Filter.EMPTY,
+      requiredFilter: parameters.requiredFilter ? Filter.fromJS(parameters.requiredFilter, true) : Filter.EMPTY,
       defaultDuration: parameters.defaultDuration ? Duration.fromJS(parameters.defaultDuration) : DataSource.DEFAULT_DURATION,
       defaultSortMeasure: parameters.defaultSortMeasure || (measures.size ? measures.first().name : null),
       defaultPinnedDimensions: OrderedSet(parameters.defaultPinnedDimensions || []),

@@ -7,12 +7,14 @@ export interface FilterClauseValue {
   expression: Expression;
   values: Set;
   exclude?: boolean;
+  required?: boolean;
 }
 
 export interface FilterClauseJS {
   expression: ExpressionJS;
   values: SetJS;
   exclude?: boolean;
+  required?: boolean;
 }
 
 var check: Class<FilterClauseValue, FilterClauseJS>;
@@ -22,7 +24,7 @@ export class FilterClause implements Instance<FilterClauseValue, FilterClauseJS>
     return isInstanceOf(candidate, FilterClause);
   }
 
-  static fromExpression(ex: Expression): FilterClause {
+  static fromExpression(ex: Expression, required: boolean = false): FilterClause {
     var exclude = false;
     if (ex.lastAction() instanceof NotAction) {
       ex = ex.popAction();
@@ -34,7 +36,8 @@ export class FilterClause implements Instance<FilterClauseValue, FilterClauseJS>
       return new FilterClause({
         expression: ex.popAction(),
         values: TimeRange.isTimeRange(val) ? Set.fromJS([val]) : val,
-        exclude
+        exclude,
+        required: required
       });
     }
     throw new Error(`invalid expression ${ex.toString()}`);
@@ -44,7 +47,8 @@ export class FilterClause implements Instance<FilterClauseValue, FilterClauseJS>
     var value: FilterClauseValue = {
       expression: Expression.fromJS(parameters.expression),
       values: Set.fromJS(parameters.values),
-      exclude: Boolean(parameters.exclude)
+      exclude: Boolean(parameters.exclude),
+      required: Boolean(parameters.required)
     };
     return new FilterClause(value);
   }
@@ -53,19 +57,22 @@ export class FilterClause implements Instance<FilterClauseValue, FilterClauseJS>
   public expression: Expression;
   public values: Set;
   public exclude: boolean;
+  public required: boolean;
 
   constructor(parameters: FilterClauseValue) {
     this.expression = parameters.expression;
     this.values = parameters.values;
     if (!Set.isSet(this.values)) throw new Error('must be a set');
     this.exclude = parameters.exclude || false;
+    this.required = parameters.required || false;
   }
 
   public valueOf(): FilterClauseValue {
     return {
       expression: this.expression,
       values: this.values,
-      exclude: this.exclude
+      exclude: this.exclude,
+      required: this.required
     };
   }
 
@@ -90,7 +97,8 @@ export class FilterClause implements Instance<FilterClauseValue, FilterClauseJS>
     return FilterClause.isFilterClause(other) &&
       this.expression.equals(other.expression) &&
       this.values.equals(other.values) &&
-      this.exclude === other.exclude;
+      this.exclude === other.exclude &&
+      this.required === other.required;
   }
 
   public toExpression(): ChainExpression {
@@ -105,6 +113,7 @@ export class FilterClause implements Instance<FilterClauseValue, FilterClauseJS>
   public changeValues(values: Set) {
     var value = this.valueOf();
     value.values = values;
+    value.required = this.required;
     return new FilterClause(value);
   }
 }

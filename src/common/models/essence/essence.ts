@@ -137,6 +137,9 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
     var timezone = dataSource.defaultTimezone;
     var requiredFilter = dataSource.requiredFilter;
     var filter = dataSource.defaultFilter;
+    if (requiredFilter.clauses.size) {
+      filter = filter.setClause(requiredFilter.clauses.get(0));
+    }
     if (dataSource.timeAttribute) {
       var now = dataSource.getMaxTimeDate();
       var timeRange = TimeRange.fromJS({
@@ -145,7 +148,6 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
       });
       filter = filter.setTimeRange(dataSource.timeAttribute, timeRange);
     }
-
     var splits = Splits.EMPTY;
     if (typeof dataSource.options['defaultSplitDimension'] === 'string') {
       var defaultSplitDimension = dataSource.getDimension(dataSource.options['defaultSplitDimension']);
@@ -530,6 +532,7 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
     // Make sure that all the elements of state are still valid
     var oldDataSource = this.dataSource;
     value.filter = value.filter.constrainToDimensions(dataSource.dimensions, dataSource.timeAttribute, oldDataSource.timeAttribute);
+    value.requiredFilter = value.requiredFilter.constrainToDimensions(dataSource.dimensions, dataSource.timeAttribute, oldDataSource.timeAttribute);
     value.splits = value.splits.constrainToDimensions(dataSource.dimensions);
     value.selectedMeasures = constrainMeasures(value.selectedMeasures, dataSource);
     value.pinnedDimensions = constrainDimensions(value.pinnedDimensions, dataSource);
@@ -560,11 +563,13 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
       value.highlight = null;
     }
 
-    var timeAttribute = this.getTimeAttribute();
-    var oldTimeRange = timeAttribute ? this.filter.getTimeRange(timeAttribute) : null;
-    var newTimeRange = timeAttribute ? filter.getTimeRange(timeAttribute) : null;
-    if (newTimeRange && !newTimeRange.equals(oldTimeRange)) {
-      value.splits = value.splits.updateWithTimeRange(timeAttribute, newTimeRange, this.timezone, true);
+    if (value.filter) {
+      var timeAttribute = this.getTimeAttribute();
+      var oldTimeRange = timeAttribute ? this.filter.getTimeRange(timeAttribute) : null;
+      var newTimeRange = timeAttribute ? filter.getTimeRange(timeAttribute) : null;
+      if (newTimeRange && !newTimeRange.equals(oldTimeRange)) {
+        value.splits = value.splits.updateWithTimeRange(timeAttribute, newTimeRange, this.timezone, true);
+      }
     }
 
     return new Essence(value);
