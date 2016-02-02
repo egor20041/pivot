@@ -171,6 +171,8 @@ export class StringFilterMenu extends React.Component<StringFilterMenuProps, Str
       } else {
         return filter.setClause(clause);
       }
+    } else if (required) {
+      return filter.setClause(requiredFilter.clauses.get(0));
     } else {
       return filter.remove(dimension.expression);
     }
