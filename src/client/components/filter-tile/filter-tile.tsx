@@ -452,7 +452,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
   renderRemoveButton(itemBlank: ItemBlank) {
     var { essence } = this.props;
     var dataSource = essence.dataSource;
-    if (itemBlank.dimension.expression.equals(dataSource.timeAttribute) || itemBlank.clause.required) return null;
+    if (itemBlank.dimension.expression.equals(dataSource.timeAttribute) || (itemBlank.clause && itemBlank.clause.required)) return null;
     return <div className="remove" onClick={this.removeFilter.bind(this, itemBlank)}>
       <SvgIcon svg={require('../../icons/x.svg')}/>
     </div>;

@@ -37,14 +37,17 @@ export class Filter implements Instance<FilterValue, FilterJS> {
     return new Filter(List([clause]));
   }
 
-  static fromJS(parameters: FilterJS, required: boolean = false): Filter {
+  static fromJS(parameters: FilterJS, requiredName: string = ''): Filter {
     var expression = Expression.fromJSLoose(parameters);
 
     var clauses: FilterClause[] = null;
+
     if (expression.equals(Expression.TRUE)) {
       clauses = [];
     } else {
-      clauses = (expression.getExpressionPattern('and') || [expression]).map(c => FilterClause.fromExpression(c, required));
+      clauses = (expression.getExpressionPattern('and') || [expression]).map(function(c) {
+        return FilterClause.fromExpression(c, c.popAction().toJS().name === requiredName);
+      });
     }
 
     return new Filter(<List<FilterClause>>List(clauses));

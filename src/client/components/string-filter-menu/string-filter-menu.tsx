@@ -151,12 +151,18 @@ export class StringFilterMenu extends React.Component<StringFilterMenuProps, Str
   constructFilter(): Filter {
     var { essence, dimension, insertPosition, replacePosition } = this.props;
     var { selectedValues } = this.state;
-    var { filter } = essence;
+    var { filter, requiredFilter } = essence;
+    var required = false;
+
+    if (requiredFilter.clauseForExpression(dimension.expression)) {
+      required = true;
+    }
 
     if (selectedValues.size()) {
       var clause = new FilterClause({
         expression: dimension.expression,
-        values: selectedValues
+        values: selectedValues,
+        required: required
       });
       if (insertPosition !== null) {
         return filter.insertByIndex(insertPosition, clause);

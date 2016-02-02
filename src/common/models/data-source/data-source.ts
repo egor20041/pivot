@@ -64,6 +64,7 @@ export interface DataSourceValue {
   defaultTimezone: Timezone;
   defaultFilter: Filter;
   requiredFilter: Filter;
+  requiredFilterDimension: string;
   defaultDuration: Duration;
   defaultSortMeasure: string;
   defaultPinnedDimensions?: OrderedSet<string>;
@@ -88,6 +89,7 @@ export interface DataSourceJS {
   defaultTimezone?: string;
   defaultFilter?: FilterJS;
   requiredFilter?: FilterJS;
+  requiredFilterDimension?: string;
   defaultDuration?: string;
   defaultSortMeasure?: string;
   defaultPinnedDimensions?: string[];
@@ -171,8 +173,9 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       timeAttribute,
       minGranularity: parameters.minGranularity ? Duration.fromJS(parameters.minGranularity) : null,
       defaultTimezone: parameters.defaultTimezone ? Timezone.fromJS(parameters.defaultTimezone) : DataSource.DEFAULT_TIMEZONE,
-      defaultFilter: parameters.defaultFilter ? Filter.fromJS(parameters.defaultFilter) : Filter.EMPTY,
-      requiredFilter: parameters.requiredFilter ? Filter.fromJS(parameters.requiredFilter, true) : Filter.EMPTY,
+      defaultFilter: parameters.defaultFilter ? Filter.fromJS(parameters.defaultFilter, parameters.requiredFilterDimension) : Filter.EMPTY,
+      requiredFilter: parameters.requiredFilter ? Filter.fromJS(parameters.requiredFilter, parameters.requiredFilterDimension) : Filter.EMPTY,
+      requiredFilterDimension: parameters.requiredFilterDimension,
       defaultDuration: parameters.defaultDuration ? Duration.fromJS(parameters.defaultDuration) : DataSource.DEFAULT_DURATION,
       defaultSortMeasure: parameters.defaultSortMeasure || (measures.size ? measures.first().name : null),
       defaultPinnedDimensions: OrderedSet(parameters.defaultPinnedDimensions || []),
@@ -200,6 +203,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
   public defaultTimezone: Timezone;
   public defaultFilter: Filter;
   public requiredFilter: Filter;
+  public requiredFilterDimension: string;
   public defaultDuration: Duration;
   public defaultSortMeasure: string;
   public defaultPinnedDimensions: OrderedSet<string>;
@@ -224,6 +228,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
     this.defaultTimezone = parameters.defaultTimezone;
     this.defaultFilter = parameters.defaultFilter;
     this.requiredFilter = parameters.requiredFilter;
+    this.requiredFilterDimension = parameters.requiredFilterDimension;
     this.defaultDuration = parameters.defaultDuration;
     this.defaultSortMeasure = parameters.defaultSortMeasure;
     this.defaultPinnedDimensions = parameters.defaultPinnedDimensions;
@@ -249,6 +254,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       defaultTimezone: this.defaultTimezone,
       defaultFilter: this.defaultFilter,
       requiredFilter: this.requiredFilter,
+      requiredFilterDimension: this.requiredFilterDimension,
       defaultDuration: this.defaultDuration,
       defaultSortMeasure: this.defaultSortMeasure,
       defaultPinnedDimensions: this.defaultPinnedDimensions,
@@ -274,6 +280,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       defaultTimezone: this.defaultTimezone.toJS(),
       defaultFilter: this.defaultFilter.toJS(),
       requiredFilter: this.requiredFilter.toJS(),
+      requiredFilterDimension: this.requiredFilterDimension,
       defaultDuration: this.defaultDuration.toJS(),
       defaultSortMeasure: this.defaultSortMeasure,
       defaultPinnedDimensions: this.defaultPinnedDimensions.toArray(),
@@ -321,6 +328,7 @@ export class DataSource implements Instance<DataSourceValue, DataSourceJS> {
       this.defaultTimezone.equals(other.defaultTimezone) &&
       this.defaultFilter.equals(other.defaultFilter) &&
       this.requiredFilter.equals(other.requiredFilter) &&
+      this.requiredFilterDimension === other.requiredFilterDimension &&
       this.defaultDuration.equals(other.defaultDuration) &&
       this.defaultSortMeasure === other.defaultSortMeasure &&
       this.defaultPinnedDimensions.equals(other.defaultPinnedDimensions) &&
