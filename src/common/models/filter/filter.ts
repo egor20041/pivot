@@ -53,7 +53,6 @@ export class Filter implements Instance<FilterValue, FilterJS> {
     return new Filter(<List<FilterClause>>List(clauses));
   }
 
-
   public clauses: List<FilterClause>;
 
   constructor(parameters: FilterValue) {
@@ -166,7 +165,6 @@ export class Filter implements Instance<FilterValue, FilterJS> {
     var index = this.indexOfClause(attribute);
     if (index === -1) return this;
     var clause = clauses.get(index);
-
     var newSet = clause.values.remove(value);
     if (newSet.empty()) {
       return new Filter(clauses.delete(index));

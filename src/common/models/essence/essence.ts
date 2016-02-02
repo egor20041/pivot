@@ -198,6 +198,10 @@ export class Essence implements Instance<EssenceValue, EssenceJS> {
     var selectedMeasures = constrainMeasures(OrderedSet(parameters.selectedMeasures), dataSource);
     var pinnedDimensions = constrainDimensions(OrderedSet(parameters.pinnedDimensions), dataSource);
 
+    if (requiredFilter.clauses.size) {
+      filter = filter.setClause(requiredFilter.clauses.get(0));
+    }
+
     var defaultSortMeasureName = dataSource.defaultSortMeasure;
 
     var colors = parameters.colors ? Colors.fromJS(parameters.colors) : null;
