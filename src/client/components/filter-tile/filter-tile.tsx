@@ -315,7 +315,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
     if (!this.canDrop(e)) return;
     e.preventDefault();
     var { clicker, essence } = this.props;
-    var { filter, requiredFilter, dataSource } = essence;
+    var { filter, requiredFilters, dataSource } = essence;
 
     var newState: FilterTileState = {
       dragOver: false,
@@ -341,7 +341,7 @@ export class FilterTile extends React.Component<FilterTileProps, FilterTileState
         } else if (dragInsertPosition !== null) {
           newFilter = filter.insertByIndex(dragInsertPosition, existingClause);
         }
-        if (filter.equals(newFilter) || requiredFilter.equals(newFilter)) {
+        if (filter.equals(newFilter) || requiredFilters.contains(newFilter)) {
           this.filterMenuRequest(dimension);
         } else {
           clicker.changeFilter(newFilter);

@@ -8,6 +8,7 @@ import { $, Expression, LiteralExpression, ExpressionJS, InAction, Set, TimeRang
 import { listsEqual } from '../../utils/general/general';
 import { Dimension } from '../dimension/dimension';
 import { FilterClause, FilterClauseJS } from '../filter-clause/filter-clause';
+import OrderedSet = Immutable.OrderedSet;
 
 function withholdClause(clauses: List<FilterClause>, clause: FilterClause, allowIndex: number): List<FilterClause> {
   return <List<FilterClause>>clauses.filter((c, i) => {
@@ -37,7 +38,7 @@ export class Filter implements Instance<FilterValue, FilterJS> {
     return new Filter(List([clause]));
   }
 
-  static fromJS(parameters: FilterJS, requiredName: string = ''): Filter {
+  static fromJS(parameters: FilterJS, requiredNames?: OrderedSet<string>): Filter {
     var expression = Expression.fromJSLoose(parameters);
 
     var clauses: FilterClause[] = null;
@@ -46,7 +47,8 @@ export class Filter implements Instance<FilterValue, FilterJS> {
       clauses = [];
     } else {
       clauses = (expression.getExpressionPattern('and') || [expression]).map(function(c) {
-        return FilterClause.fromExpression(c, c.popAction().toJS().name === requiredName);
+        var isRequired = requiredNames ? requiredNames.contains(c.popAction().toJS().name) : false;
+        return FilterClause.fromExpression(c, isRequired);
       });
     }
 

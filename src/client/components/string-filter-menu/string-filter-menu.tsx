@@ -151,12 +151,16 @@ export class StringFilterMenu extends React.Component<StringFilterMenuProps, Str
   constructFilter(): Filter {
     var { essence, dimension, insertPosition, replacePosition } = this.props;
     var { selectedValues } = this.state;
-    var { filter, requiredFilter } = essence;
+    var { filter, requiredFilters } = essence;
     var required = false;
+    var requiredFiltersToSet = List([]);
 
-    if (requiredFilter.clauseForExpression(dimension.expression)) {
-      required = true;
-    }
+    requiredFilters.forEach(function(rFilter) {
+      if (rFilter.clauseForExpression(dimension.expression)) {
+        required = true;
+        requiredFiltersToSet.push(rFilter);
+      }
+    });
 
     if (selectedValues.size()) {
       var clause = new FilterClause({
@@ -172,7 +176,12 @@ export class StringFilterMenu extends React.Component<StringFilterMenuProps, Str
         return filter.setClause(clause);
       }
     } else if (required) {
-      return filter.setClause(requiredFilter.clauses.get(0));
+      requiredFiltersToSet.forEach(function(rFilter) {
+        if (rFilter.clauses.size) {
+          filter = filter.setClause(rFilter.clauses.get(0));
+        }
+      });
+      return filter;
     } else {
       return filter.remove(dimension.expression);
     }
